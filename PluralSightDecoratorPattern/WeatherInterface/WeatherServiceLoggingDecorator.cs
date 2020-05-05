@@ -1,7 +1,8 @@
 ﻿using System.Diagnostics;
+using DecoratorDesignPattern.WeatherInterface;
 using Microsoft.Extensions.Logging;
 
-namespace DecoratorDesignPattern.WeatherInterface
+namespace PluralSightDecoratorPattern.WeatherInterface
 {
     public class WeatherServiceLoggingDecorator : IWeatherService
     {

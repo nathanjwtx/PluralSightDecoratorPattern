@@ -1,16 +1,15 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Logging;
 using DecoratorDesignPattern.Models;
 using DecoratorDesignPattern.OpenWeatherMap;
 using DecoratorDesignPattern.WeatherInterface;
-using Microsoft.Extensions.Configuration;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
+using PluralSightDecoratorPattern.WeatherInterface;
 
-namespace DecoratorDesignPattern.Controllers
+namespace PluralSightDecoratorPattern.Controllers
 {
     public class HomeController : Controller
     {
@@ -24,8 +23,14 @@ namespace DecoratorDesignPattern.Controllers
             _logger = _loggerFactory.CreateLogger<HomeController>();
 
             String apiKey = configuration.GetValue<String>("AppSettings:OpenWeatherMapApiKey");
-            _weatherService = new WeatherServiceLoggingDecorator(
-                new WeatherService(apiKey), _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
+            // we could wrap the below decorator in the caching decorator but multiple wraps gets complicated
+            // _weatherService = new WeatherServiceLoggingDecorator(
+                // new WeatherService(apiKey), _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
+            // chaining constructors is clearer than nesting
+            IWeatherService concreteService = new WeatherService(apiKey);
+            IWeatherService withLoggingDecorator = new WeatherServiceLoggingDecorator(concreteService, _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
+            IWeatherService withCachingDecorator = new WeatherServiceCachingDecorator(withLoggingDecorator, memoryCache);
+            _weatherService = withCachingDecorator;
         }
 
         public IActionResult Index(string location = "Dallas")
