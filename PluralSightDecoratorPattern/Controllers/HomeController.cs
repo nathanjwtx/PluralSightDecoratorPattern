@@ -13,25 +13,32 @@ namespace PluralSightDecoratorPattern.Controllers
 {
     public class HomeController : Controller
     {
-        private readonly ILoggerFactory _loggerFactory;
         private readonly ILogger<HomeController> _logger;
         private readonly IWeatherService _weatherService;
 
-        public HomeController(ILoggerFactory loggerFactory, IConfiguration configuration, IMemoryCache memoryCache)
+        public HomeController(ILogger<HomeController> logger, IWeatherService weatherService)
         {
-            _loggerFactory = loggerFactory;
-            _logger = _loggerFactory.CreateLogger<HomeController>();
-
-            String apiKey = configuration.GetValue<String>("AppSettings:OpenWeatherMapApiKey");
-            // we could wrap the below decorator in the caching decorator but multiple wraps gets complicated
-            // _weatherService = new WeatherServiceLoggingDecorator(
-                // new WeatherService(apiKey), _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
-            // chaining constructors is clearer than nesting
-            IWeatherService concreteService = new WeatherService(apiKey);
-            IWeatherService withLoggingDecorator = new WeatherServiceLoggingDecorator(concreteService, _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
-            IWeatherService withCachingDecorator = new WeatherServiceCachingDecorator(withLoggingDecorator, memoryCache);
-            _weatherService = withCachingDecorator;
+            _logger = logger;
+            _weatherService = weatherService;
         }
+        
+        // non DI controller constrcutor
+        // public HomeController(ILoggerFactory loggerFactory, IConfiguration configuration, IMemoryCache memoryCache)
+        // {
+        //     _loggerFactory = loggerFactory;
+        //     _logger = _loggerFactory.CreateLogger<HomeController>();
+        //
+        //     String apiKey = configuration.GetValue<String>("AppSettings:OpenWeatherMapApiKey");
+        //     // we could wrap the below decorator in the caching decorator but multiple wraps gets complicated
+        //     // _weatherService = new WeatherServiceLoggingDecorator(
+        //         // new WeatherService(apiKey), _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
+        //     
+        //     // chaining constructors is clearer than nesting
+        //     IWeatherService concreteService = new WeatherService(apiKey);
+        //     IWeatherService withLoggingDecorator = new WeatherServiceLoggingDecorator(concreteService, _loggerFactory.CreateLogger<WeatherServiceLoggingDecorator>());
+        //     IWeatherService withCachingDecorator = new WeatherServiceCachingDecorator(withLoggingDecorator, memoryCache);
+        //     _weatherService = withCachingDecorator;
+        // }
 
         public IActionResult Index(string location = "Dallas")
         {
